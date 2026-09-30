@@ -13293,7 +13293,7 @@
 				system {
 					compatible = "android,system";
 					dev = "/dev/block/platform/11120000.ufs/by-name/SYSTEM";
-					type = "erofs";
+					type = "ext4";
 					mnt_flags = "ro";
 					fsmgr_flags = "wait";
 				};
@@ -13301,7 +13301,7 @@
 				vendor {
 					compatible = "android,vendor";
 					dev = "/dev/block/platform/11120000.ufs/by-name/VENDOR";
-					type = "erofs";
+					type = "ext4";
 					mnt_flags = "ro";
 					fsmgr_flags = "wait";
 				};
@@ -13309,7 +13309,7 @@
 				odm {
 					compatible = "android,odm";
 					dev = "/dev/block/platform/11120000.ufs/by-name/ODM";
-					type = "erofs";
+					type = "ext4";
 					mnt_flags = "ro";
 					fsmgr_flags = "wait";
 				};

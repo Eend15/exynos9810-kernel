@@ -138,10 +138,12 @@ def validate(path, variant):
     if any(fdt[total:]):
         raise ValueError("non-zero data follows the FDT inside its DTBH region")
 
+    fs_types = []
     for partition in ("system", "vendor", "odm"):
-        fs_type = one_property(properties, "/fstab/" + partition, "type")
-        if fs_type.rstrip(b"\0") != b"erofs":
-            raise ValueError("%s fstab type is not erofs" % partition)
+        fs_type = one_property(properties, "/fstab/" + partition, "type").rstrip(b"\0").decode("ascii", "replace")
+        if fs_type not in ("erofs", "ext4"):
+            raise ValueError("%s fstab type %s is neither erofs nor ext4" % (partition, fs_type))
+        fs_types.append(fs_type)
 
     idle_ip = one_property(properties, "/exynos-powermode", "idle-ip")
     entries = [item for item in idle_ip.split(b"\0") if item]
@@ -156,8 +158,8 @@ def validate(path, variant):
         raise ValueError("unexpected ramoops node/property is enabled in the FDT")
 
     print("OK %s: DTBH=0x%x region=0x%x FDT=0x%x info=0x%x "
-          "fstab=erofs idle-ip=%d ramoops=0" %
-          (variant, len(data), region_size, total, info, len(entries)))
+          "fstab=%s idle-ip=%d ramoops=0" %
+          (variant, len(data), region_size, total, info, fs_types[0], len(entries)))
 
 
 def main():

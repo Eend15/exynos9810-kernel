@@ -628,7 +628,7 @@ echo " Cleanup done. Starting fast incremental builds..."
 echo "----------------------------------------------"
 
 # 1. Enforcing, No KSU
-CR_ZIP_NAME=$CR_NAME-$CR_VERSION-$CR_DATE-Enforcing-OneUI7-erofs-dtb
+CR_ZIP_NAME=$CR_NAME-$CR_VERSION-$CR_DATE-Enforcing-OneUI7-ext4-dtb
 if [ -f "$CR_PRODUCT/$CR_ZIP_NAME.zip" ]; then
     echo "=== [1/4] Skipping Enforcing - No KSU (Already built: $CR_ZIP_NAME.zip) ==="
 else
@@ -639,7 +639,7 @@ else
 fi
 
 # 2. Enforcing, KSU
-CR_ZIP_NAME=$CR_NAME-$CR_VERSION-$CR_DATE-Enforcing-KernelSU-OneUI7-erofs-dtb
+CR_ZIP_NAME=$CR_NAME-$CR_VERSION-$CR_DATE-Enforcing-KernelSU-OneUI7-ext4-dtb
 if [ -f "$CR_PRODUCT/$CR_ZIP_NAME.zip" ]; then
     echo "=== [2/4] Skipping Enforcing - KernelSU (Already built: $CR_ZIP_NAME.zip) ==="
 else
@@ -650,7 +650,7 @@ else
 fi
 
 # 3. Permissive, No KSU
-CR_ZIP_NAME=$CR_NAME-$CR_VERSION-$CR_DATE-Permissive-OneUI7-erofs-dtb
+CR_ZIP_NAME=$CR_NAME-$CR_VERSION-$CR_DATE-Permissive-OneUI7-ext4-dtb
 if [ -f "$CR_PRODUCT/$CR_ZIP_NAME.zip" ]; then
     echo "=== [3/4] Skipping Permissive - No KSU (Already built: $CR_ZIP_NAME.zip) ==="
 else
@@ -661,7 +661,7 @@ else
 fi
 
 # 4. Permissive, KSU
-CR_ZIP_NAME=$CR_NAME-$CR_VERSION-$CR_DATE-Permissive-KernelSU-OneUI7-erofs-dtb
+CR_ZIP_NAME=$CR_NAME-$CR_VERSION-$CR_DATE-Permissive-KernelSU-OneUI7-ext4-dtb
 if [ -f "$CR_PRODUCT/$CR_ZIP_NAME.zip" ]; then
     echo "=== [4/4] Skipping Permissive - KernelSU (Already built: $CR_ZIP_NAME.zip) ==="
 else
