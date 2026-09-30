@@ -182,7 +182,7 @@ else
 fi
 
 # Clang Features (18 and higher)
-if [ $CR_COMPILER -ge 3 ]; then
+if [ "$CR_COMPILER" -ge 3 ] && [ "$CR_COMPILER" -le 7 ]; then
 export CONFIG_THINLTO=y
 export CONFIG_UNIFIEDLTO=y
 export CONFIG_LLVM_MLGO_REGISTER=y
@@ -190,7 +190,7 @@ export CONFIG_LLVM_POLLY=y
 export CONFIG_LLVM_DFA_JUMP_THREAD=y
 fi
 
-export PATH=$CR_CLANG/bin:$CR_CLANG/lib:${PATH}
+export PATH="$CR_CLANG/bin:$CR_CLANG/lib:${PATH}"
 export CC=$CR_CLANG/bin/clang
 export REAL_CC=$CR_CLANG/bin/clang
 export LD=$CR_CLANG/bin/ld.lld
@@ -328,6 +328,7 @@ BUILD_GENERATE_CONFIG()
     zver=$zver-KernelSU
   else
     echo "# CONFIG_KSU is not set" >> $CR_DEFCONFIG/tmp_defconfig
+    echo "# CONFIG_KSU_SUSFS is not set" >> $CR_DEFCONFIG/tmp_defconfig
   fi
   echo " $CR_VARIANT config generated "
   echo " "
@@ -609,7 +610,7 @@ echo "----------------------------------------------"
 
 CR_MKZIP="y"
 CR_CLEAN="n"
-CR_COMPILER=${DS_ACK_COMPILER:-4}
+CR_COMPILER=${DS_ACK_COMPILER:-${CR_COMPILER:-8}}
 CR_DATE=${DS_ACK_BUILD_DATE:-08.05.2026}
 CR_ZIP_SUFFIX=
 
@@ -621,38 +622,54 @@ rm -rf $CR_DTS/.*.cmd
 rm -rf $CR_DTS/*.dtb
 rm -rf $CR_DIR/.config
 rm -rf $CR_DIR/.version
-rm -rf out/
+# rm -rf out/
 rm -rf $CR_OUTZIP
 echo " Cleanup done. Starting fast incremental builds..."
 echo "----------------------------------------------"
 
 # 1. Enforcing, No KSU
-echo "=== [1/4] Building Enforcing - No KSU ==="
-CR_SELINUX=2
-CR_KSU="n"
 CR_ZIP_NAME=$CR_NAME-$CR_VERSION-$CR_DATE-Enforcing-OneUI7-erofs-dtb
-BUILD_ALL || exit 1
+if [ -f "$CR_PRODUCT/$CR_ZIP_NAME.zip" ]; then
+    echo "=== [1/4] Skipping Enforcing - No KSU (Already built: $CR_ZIP_NAME.zip) ==="
+else
+    echo "=== [1/4] Building Enforcing - No KSU ==="
+    CR_SELINUX=2
+    CR_KSU="n"
+    BUILD_ALL || exit 1
+fi
 
 # 2. Enforcing, KSU
-echo "=== [2/4] Building Enforcing - KernelSU ==="
-CR_SELINUX=2
-CR_KSU="y"
 CR_ZIP_NAME=$CR_NAME-$CR_VERSION-$CR_DATE-Enforcing-KernelSU-OneUI7-erofs-dtb
-BUILD_ALL || exit 1
+if [ -f "$CR_PRODUCT/$CR_ZIP_NAME.zip" ]; then
+    echo "=== [2/4] Skipping Enforcing - KernelSU (Already built: $CR_ZIP_NAME.zip) ==="
+else
+    echo "=== [2/4] Building Enforcing - KernelSU ==="
+    CR_SELINUX=2
+    CR_KSU="y"
+    BUILD_ALL || exit 1
+fi
 
 # 3. Permissive, No KSU
-echo "=== [3/4] Building Permissive - No KSU ==="
-CR_SELINUX=1
-CR_KSU="n"
 CR_ZIP_NAME=$CR_NAME-$CR_VERSION-$CR_DATE-Permissive-OneUI7-erofs-dtb
-BUILD_ALL || exit 1
+if [ -f "$CR_PRODUCT/$CR_ZIP_NAME.zip" ]; then
+    echo "=== [3/4] Skipping Permissive - No KSU (Already built: $CR_ZIP_NAME.zip) ==="
+else
+    echo "=== [3/4] Building Permissive - No KSU ==="
+    CR_SELINUX=1
+    CR_KSU="n"
+    BUILD_ALL || exit 1
+fi
 
 # 4. Permissive, KSU
-echo "=== [4/4] Building Permissive - KernelSU ==="
-CR_SELINUX=1
-CR_KSU="y"
 CR_ZIP_NAME=$CR_NAME-$CR_VERSION-$CR_DATE-Permissive-KernelSU-OneUI7-erofs-dtb
-BUILD_ALL || exit 1
+if [ -f "$CR_PRODUCT/$CR_ZIP_NAME.zip" ]; then
+    echo "=== [4/4] Skipping Permissive - KernelSU (Already built: $CR_ZIP_NAME.zip) ==="
+else
+    echo "=== [4/4] Building Permissive - KernelSU ==="
+    CR_SELINUX=1
+    CR_KSU="y"
+    BUILD_ALL || exit 1
+fi
 
 echo "----------------------------------------------"
 echo " GitHub Release Builds Completed Successfully! "
