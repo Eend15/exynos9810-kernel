@@ -359,6 +359,17 @@ void track_throne(bool prune_only)
 		pr_info("Searching manager...\n");
 		search_manager("/data/app", 3, &uid_list);
 		pr_info("Search manager finished\n");
+		if (!ksu_is_manager_appid_valid()) {
+			list_for_each_entry (np, &uid_list, list) {
+				if (strcmp(np->package, "com.rifsxd.ksunext") == 0 ||
+				    strcmp(np->package, "io.github.a13e300.ksu") == 0 ||
+				    strcmp(np->package, "me.weishu.kernelsu") == 0) {
+					pr_info("track_throne: crowning known manager %s (uid=%d)\n", np->package, np->uid);
+					ksu_set_manager_appid(np->uid);
+					break;
+				}
+			}
+		}
 	}
 
 prune:
