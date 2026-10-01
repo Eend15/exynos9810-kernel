@@ -11,6 +11,7 @@
 #include "runtime/ksud.h"
 #include "manager/manager_observer.h"
 #include "manager/throne_tracker.h"
+#include "manager/manager_identity.h"
 
 bool ksu_module_mounted __read_mostly = false;
 bool ksu_boot_completed __read_mostly = false;
@@ -68,7 +69,8 @@ void on_boot_completed(void)
 {
     ksu_boot_completed = true;
     pr_info("on_boot_completed!\n");
-    track_throne(true);
+    ksu_observer_retry();
+    track_throne(!ksu_is_manager_appid_valid() ? false : true);
     ksu_selinux_hide_drop_backup_if_unused();
     ksu_avc_spoof_late_init();
 }

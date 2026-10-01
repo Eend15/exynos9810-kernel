@@ -10,6 +10,7 @@
 #include "compat/kernel_compat.h"
 #include "setuid_hook.h"
 #include "manager/throne_tracker.h"
+#include "manager/manager_identity.h"
 
 #ifndef KSU_KPROBES_HOOK
 
@@ -75,26 +76,15 @@ static int ksu_inode_rename(struct inode *old_dir, struct dentry *old_dentry,
 		return 0;
 	}
 
-	// Do not track anything until the system has fully booted.
-	// Parsing files during early boot from an LSM hook can causes VFS deadlocks
-	if (!ksu_boot_completed) {
+	// Do not track anything until the system has fully booted, unless manager not yet crowned
+	if (!ksu_boot_completed && ksu_is_manager_appid_valid()) {
 		return 0;
 	}
 
 	pr_debug("renameat: %s -> %s, new path: %s\n", old_dentry->d_name.name,
 		new_dentry->d_name.name, buf);
 
-	// Thread-safe execution using atomic operations to prevent race conditions
-	// if system_server threads execute this hook concurrently.
-	static atomic_t first_time = ATOMIC_INIT(1);
-
-	// atomic_xchg swaps the value to 0 and returns the old value.
-	// If the old value was 1, we are the first thread to reach here.
-	if (atomic_xchg(&first_time, 0) == 1) {
-		track_throne(true);
-	} else {
-		track_throne(false);
-	}
+	track_throne(false);
 
 	return 0;
 }
