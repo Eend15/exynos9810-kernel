@@ -263,6 +263,10 @@ struct selinux_kernel_status {
 
 extern void selinux_status_update_setenforce(int enforcing);
 extern void selinux_status_update_policyload(int seqno);
+#ifdef CONFIG_KSU
+u32 security_ksu_next_policy_seqno(void);
+#endif
+
 extern void selinux_complete_init(void);
 extern int selinux_disable(void);
 extern void exit_sel_fs(void);

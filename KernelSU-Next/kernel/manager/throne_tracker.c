@@ -1,3 +1,4 @@
+#include "compat/kernel_compat.h"
 #include "ksu.h"
 #include "linux/cred.h"
 #include "linux/namei.h"
@@ -303,7 +304,7 @@ void track_throne(bool prune_only)
 	/* This runs from a PackageManager fsnotify callback. Read in chunks,
 	 * rather than performing a VFS/security read for every single byte. */
 	for (;;) {
-		ssize_t count = kernel_read(fp, read_buf, 4096, &pos);
+		ssize_t count = ksu_kernel_read_compat(fp, read_buf, 4096, &pos);
 		ssize_t index;
 		if (count <= 0) {
 			if (count < 0 || prefix_len != 0)

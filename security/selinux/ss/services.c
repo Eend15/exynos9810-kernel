@@ -90,6 +90,25 @@ int ss_initialized;
  */
 static u32 latest_granting;
 
+#ifdef CONFIG_KSU
+/* Keep in-place KernelSU policy mutations in the security server sequence.
+ * Advancing only the AVC notification counter makes every later access
+ * decision look stale and prevents the cache from accepting any decision.
+ * The caller sends notifications after this lock has been released.
+ */
+u32 security_ksu_next_policy_seqno(void)
+{
+ unsigned long flags;
+ u32 seqno;
+
+ write_lock_irqsave(&policy_rwlock, flags);
+ seqno = ++latest_granting;
+ write_unlock_irqrestore(&policy_rwlock, flags);
+ return seqno;
+}
+#endif
+
+
 /* Forward declaration. */
 static int context_struct_to_string(struct context *context, char **scontext,
 				    u32 *scontext_len);
