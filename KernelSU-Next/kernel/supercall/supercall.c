@@ -120,11 +120,26 @@ static void ksu_install_fd_tw_func(struct callback_head *cb)
     kfree(tw);
 }
 
+#ifdef CONFIG_KSU_SUSFS
+extern int ksu_susfs_legacy_status(unsigned int cmd, void __user *arg);
+#endif
+
 int ksu_handle_sys_reboot(int magic1, int magic2, unsigned int cmd,
 			  void __user **arg)
 {
 	if (magic1 != KSU_INSTALL_MAGIC1)
 		return 0;
+
+#ifdef CONFIG_KSU_SUSFS
+ /* Official Next 3.4.2 queries use the reboot status ABI; our built-in
+  * SuSFS 1.5.5 retains its original prctl controls. Translate only the
+  * three read-only status queries and keep their real version/features.
+  */
+ if ((u32)magic2 == 0xFAFAFAFA) {
+  ksu_susfs_legacy_status(cmd, *arg);
+  return 0;
+ }
+#endif
 
 #ifdef CONFIG_KSU_DEBUG
 	pr_info("sys_reboot: intercepted call! magic: 0x%x id: %d\n", magic1,

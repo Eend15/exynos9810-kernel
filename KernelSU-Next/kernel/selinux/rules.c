@@ -61,8 +61,7 @@ static void reset_avc_cache()
 #ifdef KSU_COMPAT_USE_SELINUX_STATE
 	u32 seqno = selinux_state.ss ? ++selinux_state.ss->latest_granting : 1;
 #else
-	static atomic_t ksu_policy_seqno = ATOMIC_INIT(1);
-	u32 seqno = (u32)atomic_inc_return(&ksu_policy_seqno);
+	u32 seqno = security_ksu_next_policy_seqno();
 #endif
 
 #if ((!defined(KSU_COMPAT_USE_SELINUX_STATE)) || \

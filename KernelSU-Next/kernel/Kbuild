@@ -2,6 +2,9 @@ kernelsu-objs := core/init.o
 
 kernelsu-objs += compat/kernel_compat.o
 kernelsu-objs += feature/kernel_umount.o
+ifeq ($(CONFIG_KSU_SUSFS),y)
+kernelsu-objs += feature/susfs_legacy_status.o
+endif
 kernelsu-objs += feature/sulog.o
 kernelsu-objs += feature/sucompat.o
 kernelsu-objs += feature/shell_su_adb_only.o

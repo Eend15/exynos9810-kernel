@@ -61,10 +61,25 @@ for variant in G960F G965F N960F G960N G965N N960N; do
     config="$TMP_DIR/$variant.config"
 
     case "$(basename "$ZIP_PATH")" in
-        *AOT-dt2w*)
+        *AOT*)
             grep -q '^CONFIG_WAKE_GESTURES=y$' "$config"
             grep -aq 'aot_enable' "$kernel"
             grep -aq 'doubletap2wake' "$kernel"
+            ;;
+    esac
+
+    case "$(basename "$ZIP_PATH")" in
+        *v3.4.2*)
+            grep -aq 'v3.4.2-legacy' "$kernel"
+            grep -aq '.ksu_services_once' "$kernel"
+            grep -q '^CONFIG_KSU_SUSFS=y$' "$config"
+            for feature in HAS_MAGIC_MOUNT SUS_PATH SUS_MOUNT \
+                AUTO_ADD_SUS_KSU_DEFAULT_MOUNT AUTO_ADD_SUS_BIND_MOUNT \
+                SUS_KSTAT SUS_OVERLAYFS TRY_UMOUNT \
+                AUTO_ADD_TRY_UMOUNT_FOR_BIND_MOUNT SPOOF_UNAME ENABLE_LOG \
+                HIDE_KSU_SUSFS_SYMBOLS SPOOF_CMDLINE_OR_BOOTCONFIG OPEN_REDIRECT SUS_SU; do
+                grep -q "^CONFIG_KSU_SUSFS_${feature}=y$" "$config"
+            done
             ;;
     esac
 
