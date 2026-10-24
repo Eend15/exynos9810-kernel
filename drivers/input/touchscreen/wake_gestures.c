@@ -103,6 +103,7 @@ static int vib_strength = VIB_STRENGTH;
 
 static struct input_dev * wake_dev;
 static DEFINE_MUTEX(pwrkeyworklock);
+static unsigned int wake_keycode = KEY_POWER;
 static struct workqueue_struct *s2w_input_wq;
 static struct workqueue_struct *dt2w_input_wq;
 static struct work_struct s2w_input_work;
@@ -130,13 +131,15 @@ static void report_gesture(int gest)
 
 /* PowerKey work func */
 static void wake_presspwr(struct work_struct * wake_presspwr_work) {
+	unsigned int keycode;
 	if (!mutex_trylock(&pwrkeyworklock))
 		return;
 
-	input_event(wake_dev, EV_KEY, KEY_POWER, 1);
+	keycode = READ_ONCE(wake_keycode);
+	input_event(wake_dev, EV_KEY, keycode, 1);
 	input_event(wake_dev, EV_SYN, 0, 0);
 	msleep(WG_PWRKEY_DUR);
-	input_event(wake_dev, EV_KEY, KEY_POWER, 0);
+	input_event(wake_dev, EV_KEY, keycode, 0);
 	input_event(wake_dev, EV_SYN, 0, 0);
 	msleep(WG_PWRKEY_DUR);
 	mutex_unlock(&pwrkeyworklock);
@@ -155,6 +158,8 @@ static void wake_pwrtrigger(void) {
 	if (pwrtrigger_time[0] - pwrtrigger_time[1] < TRIGGER_TIMEOUT)
 		return;
 
+	/* Capture wake intent before asynchronous work; KEY_WAKEUP never sleeps. */
+	WRITE_ONCE(wake_keycode, is_suspended() ? KEY_WAKEUP : KEY_POWER);
 	schedule_work(&wake_presspwr_work);
 
         return;
@@ -713,6 +718,7 @@ static int __init wake_gestures_init(void)
 	}
 
 	input_set_capability(wake_dev, EV_KEY, KEY_POWER);
+	input_set_capability(wake_dev, EV_KEY, KEY_WAKEUP);
 	wake_dev->name = "wg_pwrkey";
 	wake_dev->phys = "wg_pwrkey/input0";
 

@@ -9,6 +9,7 @@
 #include <linux/namei.h>
 #include <linux/proc_ns.h>
 #include <linux/pid.h>
+#include <linux/version.h>
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 11, 0)
 #include <linux/sched/task.h>
 #else
