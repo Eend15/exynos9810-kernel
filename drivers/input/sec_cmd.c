@@ -282,8 +282,14 @@ static void sec_cmd_store_function(struct sec_cmd_data *data)
 				end = cur;
 				memcpy(buff, start, end - start);
 				*(buff + strnlen(buff, ARRAY_SIZE(buff))) = '\0';
-				if (kstrtoint(buff, 10, data->cmd_param + param_cnt) < 0)
+				if (kstrtoint(buff, 10, data->cmd_param + param_cnt) < 0) {
+					/* UN1CA: reject malformed input without wedging AOT/AOD behind it. */
+					sec_cmd_set_default_result(data);
+					data->cmd_state = SEC_CMD_STATUS_FAIL;
+					sec_cmd_set_cmd_result(data, "NG", 2);
+					sec_cmd_set_cmd_exit(data);
 					return;
+				}
 				start = cur + 1;
 				memset(buff, 0x00, ARRAY_SIZE(buff));
 				param_cnt++;

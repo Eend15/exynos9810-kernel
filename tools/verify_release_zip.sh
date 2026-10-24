@@ -60,6 +60,14 @@ for variant in G960F G965F N960F G960N G965N N960N; do
     "$ROOT_DIR/scripts/extract-ikconfig" "$kernel" > "$TMP_DIR/$variant.config"
     config="$TMP_DIR/$variant.config"
 
+    case "$(basename "$ZIP_PATH")" in
+        *AOT-dt2w*)
+            grep -q '^CONFIG_WAKE_GESTURES=y$' "$config"
+            grep -aq 'aot_enable' "$kernel"
+            grep -aq 'doubletap2wake' "$kernel"
+            ;;
+    esac
+
     grep -q '^CONFIG_EROFS_FS=y$' "$config"
     grep -q '^CONFIG_EROFS_FS_ZIP=y$' "$config"
     grep -q '^CONFIG_DEVTMPFS=y$' "$config"

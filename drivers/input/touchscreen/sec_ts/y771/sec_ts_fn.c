@@ -12,6 +12,10 @@
 
 #include "sec_ts.h"
 
+#ifdef CONFIG_WAKE_GESTURES
+#include <linux/wake_gestures.h>
+#endif
+
 static void fw_update(void *device_data);
 static void get_fw_ver_bin(void *device_data);
 static void get_fw_ver_ic(void *device_data);
@@ -101,6 +105,32 @@ static void set_wirelesscharger_mode(void *device_data);
 static void spay_enable(void *device_data);
 static void set_aod_rect(void *device_data);
 static void get_aod_rect(void *device_data);
+#ifdef CONFIG_WAKE_GESTURES
+/* UN1CA_DT2W_AOT: use the same backend and suspend deferral as android_touch. */
+static void aot_enable(void *device_data)
+{
+	struct sec_cmd_data *sec = device_data;
+	char *result = "NG";
+
+	sec_cmd_set_default_result(sec);
+	if (sec->cmd_param[0] == 0 || sec->cmd_param[0] == 1) {
+		dt2w_switch_temp = sec->cmd_param[0];
+		if (!scr_suspended()) {
+			dt2w_switch = dt2w_switch_temp;
+			dt2w_switch_changed = false;
+		} else {
+			dt2w_switch_changed = true;
+		}
+		result = "OK";
+		sec->cmd_state = SEC_CMD_STATUS_OK;
+	} else {
+		sec->cmd_state = SEC_CMD_STATUS_FAIL;
+	}
+	sec_cmd_set_cmd_result(sec, result, strlen(result));
+	sec_cmd_set_cmd_exit(sec);
+}
+#endif
+
 static void aod_enable(void *device_data);
 static void singletap_enable(void *device_data);
 static void set_grip_data(void *device_data);
@@ -216,6 +246,9 @@ static struct sec_cmd sec_cmds[] = {
 	{SEC_CMD("set_aod_rect", set_aod_rect),},
 	{SEC_CMD("get_aod_rect", get_aod_rect),},
 	{SEC_CMD("aod_enable", aod_enable),},
+#ifdef CONFIG_WAKE_GESTURES
+	{SEC_CMD("aot_enable", aot_enable),},
+#endif
 	{SEC_CMD("singletap_enable", singletap_enable),},
 	{SEC_CMD("set_grip_data", set_grip_data),},
 	{SEC_CMD("external_noise_mode", external_noise_mode),},
@@ -1973,6 +2006,10 @@ static ssize_t read_support_feature(struct device *dev,
 	struct sec_cmd_data *sec = dev_get_drvdata(dev);
 	struct sec_ts_data *ts = container_of(sec, struct sec_ts_data, sec);
 	u32 feature = 0;
+
+#ifdef CONFIG_WAKE_GESTURES
+	feature |= INPUT_FEATURE_ENABLE_SETTINGS_AOT;
+#endif
 
 	if (ts->plat_data->support_pressure)
 		feature |= INPUT_FEATURE_ENABLE_PRESSURE;

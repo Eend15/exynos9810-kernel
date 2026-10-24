@@ -14,7 +14,9 @@
 #include <linux/uaccess.h>
 #include <linux/uidgid.h>
 
+#include "policy/app_profile.h"
 #include "policy/allowlist.h"
+#include "policy/app_profile.h"
 #include "hook/setuid_hook.h"
 #include "klog.h" // IWYU pragma: keep
 #include "manager/manager_identity.h"
@@ -23,8 +25,6 @@
 #include "hook/hook_manager.h"
 #include "feature/kernel_umount.h"
 #include "compat/kernel_compat.h"
-
-extern void disable_seccomp(struct task_struct *tsk);
 
 int ksu_handle_setresuid(uid_t old_uid, uid_t new_uid)
 {
@@ -39,7 +39,7 @@ int ksu_handle_setresuid(uid_t old_uid, uid_t new_uid)
             ksu_seccomp_allow_cache(current->seccomp.filter, __NR_reboot);
         }
 #else
-		disable_seccomp(current);
+		disable_seccomp();
 #endif
 
 #ifdef KSU_KPROBES_HOOK
@@ -57,7 +57,7 @@ int ksu_handle_setresuid(uid_t old_uid, uid_t new_uid)
             ksu_seccomp_allow_cache(current->seccomp.filter, __NR_reboot);
         }
 #else
-		disable_seccomp(current);
+		disable_seccomp();
 #endif
 
 #ifdef KSU_KPROBES_HOOK

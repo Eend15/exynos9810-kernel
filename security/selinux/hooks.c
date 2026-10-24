@@ -2614,8 +2614,23 @@ static int check_nnp_nosuid(const struct linux_binprm *bprm,
 	if (!error) {
             rc = strcmp("u:r:init:s0",secdata);
             security_release_secctx(secdata, seclen);
-            if (rc == 0 && new_tsec->sid == ksu_sid) {
+            if (rc == 0 && nosuid && !nnp && new_tsec->sid == ksu_sid) {
 		return 0;
+            }
+            /*
+             * KernelSU Next runs ksud as init -> ksu from /data, which
+             * Android mounts nosuid. Only exempt that trusted service
+             * transition; retain NNP and all other nosuid restrictions.
+             */
+            if (rc == 0 && nosuid && !nnp) {
+                static u32 ksud_sid;
+
+                if (!ksud_sid)
+                    security_secctx_to_secid("u:r:ksu:s0",
+                                             strlen("u:r:ksu:s0"),
+                                             &ksud_sid);
+                if (ksud_sid && new_tsec->sid == ksud_sid)
+                    return 0;
             }
         }
 #endif
