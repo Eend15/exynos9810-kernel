@@ -3164,8 +3164,8 @@ static int sec_ts_input_open(struct input_dev *dev)
 #ifdef CONFIG_WAKE_GESTURES
 		if (s2w_switch || dt2w_switch)
 			disable_irq_wake(ts->client->irq);
-		else
 #endif
+		/* Always restore normal scan after the display resumes. */
 		sec_ts_set_lowpowermode(ts, TO_TOUCH_MODE);
 #endif
 	} else {
