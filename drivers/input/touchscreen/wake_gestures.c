@@ -443,7 +443,9 @@ static void dt2w_input_callback(struct work_struct *unused)
 static void wg_input_event(struct input_handle *handle, unsigned int type,
 				unsigned int code, int value)
 {
-	if (is_suspended() && code == ABS_MT_POSITION_X) {
+	/* UN1CA_DT2W_TAP_COORDS: sec_ts adds the 5000 offset to MOVE reports only;
+	 * PRESS reports carry the real X. Undo it only where it was added. */
+	if (is_suspended() && code == ABS_MT_POSITION_X && value >= 5000) {
 		value -= 5000;
 	}
 	

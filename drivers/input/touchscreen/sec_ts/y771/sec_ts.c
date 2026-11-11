@@ -14,6 +14,8 @@
 #include <linux/kernel.h>
 #include <linux/wake_gestures.h>
 static bool is_suspended;
+/* UN1CA_TOUCH_LPM_EXIT: irq wake armed by input_close for dt2w/s2w. */
+static bool un1ca_dt2w_irq_wake;
 bool scr_suspended(void)
 {
 	return is_suspended;
@@ -2818,6 +2820,11 @@ static void sec_ts_reset_work(struct work_struct *work)
 	if (ts->input_dev_touch->disabled) {
 		input_err(true, &ts->client->dev, "%s: call input_close\n", __func__);
 
+#ifdef CONFIG_WAKE_GESTURES
+		/* UN1CA_TOUCH_LPM_EXIT: keep the dt2w scan state chosen by input_close. */
+		if (s2w_switch || dt2w_switch) {
+		} else
+#endif
 		if (ts->lowpower_mode) {
 			ret = sec_ts_set_lowpowermode(ts, TO_LOWPOWER_MODE);
 			if (ret < 0) {
@@ -3157,15 +3164,18 @@ static int sec_ts_input_open(struct input_dev *dev)
 	secure_touch_stop(ts, 0);
 #endif
 
+#ifdef CONFIG_WAKE_GESTURES
+	if (un1ca_dt2w_irq_wake) {
+		disable_irq_wake(ts->client->irq);
+		un1ca_dt2w_irq_wake = false;
+	}
+#endif
+
 	if (ts->power_status == SEC_TS_STATE_LPM) {
 #ifdef USE_RESET_EXIT_LPM
 		schedule_delayed_work(&ts->reset_work, msecs_to_jiffies(TOUCH_RESET_DWORK_TIME));
 #else
-#ifdef CONFIG_WAKE_GESTURES
-		if (s2w_switch || dt2w_switch)
-			disable_irq_wake(ts->client->irq);
-		else
-#endif
+		/* UN1CA_TOUCH_LPM_EXIT: a reset while closed can leave LPM set with dt2w on. */
 		sec_ts_set_lowpowermode(ts, TO_TOUCH_MODE);
 #endif
 	} else {
@@ -3304,9 +3314,12 @@ static void sec_ts_input_close(struct input_dev *dev)
 	ts->pressure_setting_mode = 0;
 
 #ifdef CONFIG_WAKE_GESTURES
-		if (s2w_switch || dt2w_switch)
-			enable_irq_wake(ts->client->irq);
-		else
+		if (s2w_switch || dt2w_switch) {
+			if (!un1ca_dt2w_irq_wake) {
+				enable_irq_wake(ts->client->irq);
+				un1ca_dt2w_irq_wake = true;
+			}
+		} else
 #endif
 	if (ts->prox_power_off) {
 		sec_ts_stop_device(ts);
